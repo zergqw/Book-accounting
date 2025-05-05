@@ -1,4 +1,7 @@
-# Book-accounting
-- Описание проекта: учёт книг в виде приложения.  
-- Основной функционал: добавление, удаление, поиск книг.  
-- Технологии: JS, Node.js, Electron, PostgreSQL, Jest, Spectron.  
+## Установка backend
+
+- Скачать и установить Postgresql
+- cd ./путь_к_проекту
+- npm i 
+- npm run migrate
+- npm run start
