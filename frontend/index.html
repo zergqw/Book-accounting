@@ -67,7 +67,7 @@
                 <button class="view-btn" data-view="cards"><i class="fas fa-th-large"></i> Карточки</button>
             </div>
             
-            <!-- Табличное представление -->
+            
             <div class="table-view">
                 <table>
                     <thead>
@@ -79,89 +79,17 @@
                             <th>Действия</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        <tr>
-                            <td>1984</td>
-                            <td>Джордж Оруэлл</td>
-                            <td>Фантастика</td>
-                            <td>1949</td>
-                            <td>
-                                <button class="btn-icon edit"><i class="fas fa-edit"></i></button>
-                                <button class="btn-icon delete"><i class="fas fa-trash"></i></button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>Преступление и наказание</td>
-                            <td>Фёдор Достоевский</td>
-                            <td>Роман</td>
-                            <td>1866</td>
-                            <td>
-                                <button class="btn-icon edit"><i class="fas fa-edit"></i></button>
-                                <button class="btn-icon delete"><i class="fas fa-trash"></i></button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>Мастер и Маргарита</td>
-                            <td>Михаил Булгаков</td>
-                            <td>Роман</td>
-                            <td>1967</td>
-                            <td>
-                                <button class="btn-icon edit"><i class="fas fa-edit"></i></button>
-                                <button class="btn-icon delete"><i class="fas fa-trash"></i></button>
-                            </td>
-                        </tr>
+                    <tbody id="book-table-body">
+                        
                     </tbody>
                 </table>
             </div>
             
-            <!-- Представление карточками (изначально скрыто) -->
-            <div class="cards-view" style="display: none;">
-                <div class="card">
-                    <div class="card-header">
-                        <h3>1984</h3>
-                        <span class="year">1949</span>
-                    </div>
-                    <div class="card-body">
-                        <p><strong>Автор:</strong> Джордж Оруэлл</p>
-                        <p><strong>Жанр:</strong> Фантастика</p>
-                    </div>
-                    <div class="card-actions">
-                        <button class="btn-icon edit"><i class="fas fa-edit"></i></button>
-                        <button class="btn-icon delete"><i class="fas fa-trash"></i></button>
-                    </div>
-                </div>
+            
+            <div class="cards-view" style="display: none;" id="book-cards-view">
                 
-                <div class="card">
-                    <div class="card-header">
-                        <h3>Преступление и наказание</h3>
-                        <span class="year">1866</span>
-                    </div>
-                    <div class="card-body">
-                        <p><strong>Автор:</strong> Фёдор Достоевский</p>
-                        <p><strong>Жанр:</strong> Роман</p>
-                    </div>
-                    <div class="card-actions">
-                        <button class="btn-icon edit"><i class="fas fa-edit"></i></button>
-                        <button class="btn-icon delete"><i class="fas fa-trash"></i></button>
-                    </div>
-                </div>
-                
-                <div class="card">
-                    <div class="card-header">
-                        <h3>Мастер и Маргарита</h3>
-                        <span class="year">1967</span>
-                    </div>
-                    <div class="card-body">
-                        <p><strong>Автор:</strong> Михаил Булгаков</p>
-                        <p><strong>Жанр:</strong> Роман</p>
-                    </div>
-                    <div class="card-actions">
-                        <button class="btn-icon edit"><i class="fas fa-edit"></i></button>
-                        <button class="btn-icon delete"><i class="fas fa-trash"></i></button>
-                    </div>
-                </div>
             </div>
         </section>
     </div>
+    <script src="renderer.js"></script>
 </body>
-</html>
