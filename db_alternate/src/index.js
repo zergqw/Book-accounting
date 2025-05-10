@@ -1,3 +1,3 @@
-import Books from './models/books.js'
+import Books from './models/books.js';
 
-console.log('run')
+console.log(Books.getById(1));

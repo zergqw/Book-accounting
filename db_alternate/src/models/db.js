@@ -1,5 +1,9 @@
-import postgres from 'postgres'
-      
-const sql = postgres({ host:'localhost', database: 'booksdb', username: 'postgres' })
+import postgres from 'postgres';
 
-export default sql
+const sql = postgres({
+  host: 'localhost',
+  database: 'booksdb',
+  username: 'postgres',
+});
+
+export default sql;
