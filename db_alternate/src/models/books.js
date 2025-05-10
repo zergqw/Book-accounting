@@ -4,16 +4,21 @@ import Categories from './categories.js';
 import Publishers from './publishers.js';
 import { inRange, startsWith } from './queryFragments.js';
 
-const deleteById = async (id) => sql` delete from books where id = ${id}`;
+const deleteById = async (id) => {
+  await sql`delete from books where id = ${id}`;
+  await sql`delete from book_authors where book_id = ${id}`;
+  await sql`delete from book_categories where book_id = ${id}`;
+  await sql`delete from book_publishers where book_id = ${id}`;
+};
 
 const add = async (title, authors, categories, year, pages, publisher) => {
-  await sql`
-    insert into books (title, year, pages) values (${title}, ${year}, ${pages})`;
   const ids = await sql`select id from books 
     where title = ${title} and year = ${year} and pages = ${pages}`;
-  console.log(ids);
-  const { id: bookId } = ids.shift(0);
   await Promise.all(ids.map(async ({ id }) => deleteById(id)));
+  await sql`
+    insert into books (title, year, pages) values (${title}, ${year}, ${pages})`;
+  const [{ id: bookId }] = await sql`select id from books 
+    where title = ${title} and year = ${year} and pages = ${pages}`;
   const bookAuthors = (await Authors.add(authors)).map(({ id }) => ({
     book_id: bookId,
     author_id: id,
@@ -48,9 +53,8 @@ const getById = async (id) => {
   };
 };
 
-const get = async () => {
+const getAll = async () => {
   const ids = await sql`select id from books`;
-  console.log(ids[0]);
   return Promise.all(ids.map(async ({ id }) => getById(id)));
 };
 
@@ -106,7 +110,7 @@ const update = async (book) => {
 
 export default {
   add,
-  get,
+  getAll,
   getById,
   deleteById,
   find,
