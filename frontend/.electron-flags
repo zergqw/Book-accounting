@@ -1,0 +1,6 @@
+--disable-dev-shm-usage
+--disable-gpu
+--no-sandbox
+--disable-dbus
+--enable-features=UseOzonePlatform
+--ozone-platform=x11
