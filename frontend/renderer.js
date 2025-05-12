@@ -1,142 +1,217 @@
-const knex = require('./database');
-
-// Функция для добавления новой книги
-async function addBook(title, author, genre, year) {
-  await knex('books').insert({ title, author, genre, year });
-}
-
-// Функция для редактирования книги
-async function editBook(id, title, author, genre, year) {
-  await knex('books')
-    .where({ id })
-    .update({ title, author, genre, year });
-}
-
-// Функция для удаления книги
-async function deleteBook(id) {
-  await knex('books')
-    .where({ id })
-    .del();
-}
-
-// Функция для поиска книг
-async function searchBooks(query) {
-  return knex('books')
-    .where('title', 'like', `%${query}%`)
-    .orWhere('author', 'like', `%${query}%`)
-    .orWhere('genre', 'like', `%${query}%`);
-}
-
-// Функция для получения всех книг
-async function getAllBooks() {
-  return knex('books').select('*');
-}
-
-// Загрузка книг в таблицу
-async function loadBooks(books = null) {
-  if (!books) {
-    books = await getAllBooks();
-  }
-  const tbody = document.getElementById('book-table-body');
-  const cardsView = document.getElementById('book-cards-view');
-  tbody.innerHTML = '';
-  cardsView.innerHTML = '';
-
-  books.forEach(book => {
-    const row = document.createElement('tr');
-    row.innerHTML = `
-      <td>${book.title}</td>
-      <td>${book.author}</td>
-      <td>${book.genre}</td>
-      <td>${book.year}</td>
-      <td>
-        <button class="btn-icon edit" data-id="${book.id}"><i class="fas fa-edit"></i></button>
-        <button class="btn-icon delete" data-id="${book.id}"><i class="fas fa-trash"></i></button>
-      </td>
-    `;
-    tbody.appendChild(row);
-
-    const card = document.createElement('div');
-    card.className = 'card';
-    card.innerHTML = `
-      <div class="card-header">
-        <h3>${book.title}</h3>
-        <span class="year">${book.year}</span>
-      </div>
-      <div class="card-body">
-        <p><strong>Автор:</strong> ${book.author}</p>
-        <p><strong>Жанр:</strong> ${book.genre}</p>
-      </div>
-      <div class="card-actions">
-        <button class="btn-icon edit" data-id="${book.id}"><i class="fas fa-edit"></i></button>
-        <button class="btn-icon delete" data-id="${book.id}"><i class="fas fa-trash"></i></button>
-      </div>
-    `;
-    cardsView.appendChild(card);
-  });
-}
-
-// Инициализация приложения
 document.addEventListener('DOMContentLoaded', () => {
-  loadBooks();
+  const searchInput = document.getElementById('search');
+  const searchBtn = document.querySelector('.search-btn');
+  const bookTableBody = document.getElementById('book-table-body');
+  const API_URL = 'http://localhost:3000/api/books';
 
-  // Обработка добавления книги
-  document.getElementById('book-form').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const title = document.getElementById('title').value;
-    const author = document.getElementById('author').value;
-    const genre = document.getElementById('genre').value;
-    const year = parseInt(document.getElementById('year').value, 10);
-
-    await addBook(title, author, genre, year);
+  function init() {
+    initEventListeners();
     loadBooks();
-  });
+  }
 
-  // Обработка поиска книг
-  document.querySelector('.search-btn').addEventListener('click', async () => {
-    const query = document.getElementById('search').value.trim();
-    if (query) {
-      const books = await searchBooks(query);
-      loadBooks(books);
-    } else {
+  function initEventListeners() {
+    document.getElementById('add-book-btn').addEventListener('click', () => {
+      openBookModal();
+    });
+        
+    searchBtn.addEventListener('click', () => {
+      const searchTerm = searchInput.value.trim();
+      if (searchTerm) loadBooks(searchTerm);
+    });
+    document.querySelector('.reset-btn').addEventListener('click', () => {
+      searchInput.value = '';
       loadBooks();
-    }
-  });
+    });
+    document.getElementById('edit-form').addEventListener('submit', handleFormSubmit);
 
-  // Обработка редактирования и удаления
-  document.addEventListener('click', async (e) => {
-    if (e.target.closest('.edit')) {
-      const id = e.target.closest('.edit').dataset.id;
-      const title = prompt('Введите новое название:');
-      const author = prompt('Введите нового автора:');
-      const genre = prompt('Введите новый жанр:');
-      const year = prompt('Введите новый год:');
-      await editBook(id, title, author, genre, parseInt(year, 10));
-      loadBooks();
-    }
+    document.querySelector('.close-modal').addEventListener('click', () => {
+      closeModal();
+    });
 
-    if (e.target.closest('.delete')) {
-      const id = e.target.closest('.delete').dataset.id;
-      if (confirm('Вы уверены, что хотите удалить эту книгу?')) {
-        await deleteBook(id);
-        loadBooks();
-      }
-    }
-  });
+    document.getElementById('edit-modal').addEventListener('click', (e) => {
+      if (e.target === e.currentTarget) closeModal();
+    });
 
-  // Переключение представлений
-  document.querySelectorAll('.view-btn').forEach(button => {
-    button.addEventListener('click', (e) => {
-      document.querySelectorAll('.view-btn').forEach(btn => btn.classList.remove('active'));
-      e.target.classList.add('active');
-
-      if (e.target.dataset.view === 'table') {
-        document.querySelector('.table-view').style.display = 'block';
-        document.querySelector('.cards-view').style.display = 'none';
-      } else {
-        document.querySelector('.table-view').style.display = 'none';
-        document.querySelector('.cards-view').style.display = 'grid';
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && document.getElementById('edit-modal').style.display === 'block') {
+        closeModal();
       }
     });
-  });
+
+    document.querySelectorAll('.view-btn').forEach(btn => {
+      btn.addEventListener('click', toggleView);
+    });
+  }
+
+  async function loadBooks(searchTerm = '') {
+    try {
+      if (!searchTerm) {
+        searchInput.value = '';
+      }
+        
+      const url = searchTerm 
+        ? `${API_URL}/search?query=${encodeURIComponent(searchTerm)}`
+        : API_URL;
+            
+      const response = await fetch(url);
+      if (!response.ok) throw new Error('Ошибка загрузки книг');
+        
+      const books = await response.json();
+      renderBooks(books.data || books);
+    } catch (error) {
+      console.error('Error:', error);
+      showAlert('Ошибка при загрузке книг', 'error');
+    }
+  }
+
+  function renderBooks(books) {
+    bookTableBody.innerHTML = '';
+        
+    if (books.length === 0) {
+      bookTableBody.innerHTML = '<tr><td colspan="5">Книги не найдены</td></tr>';
+      return;
+    }
+        
+    books.forEach(book => {
+      renderBookTableRow(book);
+    });
+
+    initBookActions();
+  }
+
+  function renderBookTableRow(book) {
+    const row = document.createElement('tr');
+    row.innerHTML = `
+            <td>${book.title}</td>
+            <td>${book.author}</td>
+            <td>${book.genre || '-'}</td>
+            <td>${book.year || '-'}</td>
+            <td>
+                <button class="btn btn-edit" data-id="${book.id}">
+                    <i class="fas fa-edit"></i>
+                </button>
+                <button class="btn btn-delete" data-id="${book.id}">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </td>
+        `;
+    bookTableBody.appendChild(row);
+  }
+
+  function initBookActions() {
+    document.querySelectorAll('.btn-delete').forEach(btn => {
+      btn.addEventListener('click', handleDeleteBook);
+    });
+
+    document.querySelectorAll('.btn-edit').forEach(btn => {
+      btn.addEventListener('click', handleEditBook);
+    });
+  }
+
+  async function handleDeleteBook(e) {
+    const id = e.currentTarget.getAttribute('data-id');
+    if (!confirm('Вы уверены, что хотите удалить эту книгу?')) return;
+        
+    try {
+      const response = await fetch(`${API_URL}/${id}`, {
+        method: 'DELETE'
+      });
+            
+      if (!response.ok) throw new Error('Ошибка при удалении книги');
+            
+      loadBooks();
+      showAlert('Книга успешно удалена!', 'success');
+    } catch (error) {
+      console.error('Error:', error);
+      showAlert('Ошибка при удалении книги', 'error');
+    }
+  }
+
+  async function handleEditBook(e) {
+    const id = e.currentTarget.getAttribute('data-id');
+    try {
+      const response = await fetch(`${API_URL}/${id}`);
+      if (!response.ok) throw new Error('Ошибка загрузки данных книги');
+            
+      const book = await response.json();
+      openBookModal(book.data || book);
+    } catch (error) {
+      console.error('Error:', error);
+      showAlert('Ошибка при загрузке данных книги', 'error');
+    }
+  }
+
+  function openBookModal(book = null) {
+    const isEditMode = book !== null;
+    const modal = document.getElementById('edit-modal');
+        
+    document.getElementById('modal-title').textContent = 
+            isEditMode ? 'Редактировать книгу' : 'Добавить новую книгу';
+    document.getElementById('submit-text').textContent = 
+            isEditMode ? 'Сохранить' : 'Добавить';
+        
+    document.getElementById('edit-id').value = isEditMode ? book.id : '';
+    document.getElementById('edit-title').value = isEditMode ? book.title : '';
+    document.getElementById('edit-author').value = isEditMode ? book.author : '';
+    document.getElementById('edit-genre').value = isEditMode ? book.genre || '' : '';
+    document.getElementById('edit-year').value = isEditMode ? book.year || '' : '';
+        
+    modal.style.display = 'block';
+        
+  }
+
+  function closeModal() {
+    document.getElementById('edit-modal').style.display = 'none';
+  }
+
+  async function handleFormSubmit(e) {
+    e.preventDefault();
+        
+    const bookData = {
+      title: document.getElementById('edit-title').value,
+      author: document.getElementById('edit-author').value,
+      genre: document.getElementById('edit-genre').value,
+      year: parseInt(document.getElementById('edit-year').value)
+    };
+        
+    const id = document.getElementById('edit-id').value;
+    const isEditMode = !!id;
+
+    try {
+      const url = isEditMode ? `${API_URL}/${id}` : API_URL;
+      const method = isEditMode ? 'PUT' : 'POST';
+            
+      const response = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(bookData)
+      });
+
+      if (!response.ok) throw new Error(`Ошибка ${isEditMode ? 'обновления' : 'добавления'} книги`);
+            
+      closeModal();
+      loadBooks();
+      showAlert(`Книга успешно ${isEditMode ? 'обновлена' : 'добавлена'}!`, 'success');
+    } catch (error) {
+      console.error('Error:', error);
+      showAlert(`Ошибка: ${error.message}`, 'error');
+    }
+  }
+
+  function toggleView(e) {
+    document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+    e.currentTarget.classList.add('active');
+        
+    if (e.currentTarget.getAttribute('data-view') === 'table') {
+      document.querySelector('.table-view').style.display = 'block';
+    } else {
+      document.querySelector('.table-view').style.display = 'none';
+    }
+  }
+
+  function showAlert(message) {
+    alert(message); 
+  }
+
+  init();
 });
