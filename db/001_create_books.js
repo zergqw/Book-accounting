@@ -1,4 +1,4 @@
-const db = require('../../backend/config/db');
+const db = require('../backend/config/db.js');
 
 const up = async () => {
   const createTableQuery = `
@@ -7,7 +7,7 @@ const up = async () => {
       title VARCHAR(255) NOT NULL,
       author VARCHAR(255) NOT NULL,
       year INTEGER NOT NULL,
-      genre VARCHAR(100),
+      genre VARCHAR(100)
     );
     
     CREATE INDEX IF NOT EXISTS idx_books_title ON books(title);

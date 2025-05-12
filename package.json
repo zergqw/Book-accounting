@@ -7,7 +7,7 @@
   },
   "scripts": {
     "start": "electron .",
-    "migrate": "/db/migrations/run.js",
+    "migrate": "node ./db/run.js",
     "test": "jest",
     "test:watch": "jest --watch"
   },

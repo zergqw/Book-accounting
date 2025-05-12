@@ -1,7 +1,7 @@
 require('dotenv').config();
 const fs = require('fs');
 const path = require('path');
-const db = require('../../backend/config/db');
+const db = require('../backend/config/db');
 
 const runMigrations = async () => {
   const migrationFiles = fs
